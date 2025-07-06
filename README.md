@@ -5,6 +5,12 @@
 
 下载后模型放到这里： ～/ComfyUI/custom_nodes/ComfyUI-UVR5/uvr5/uvr5_weights
 
+Download with huggingface-cli:
+
+``` bash
+huggingface-cli download lj1995/VoiceConversionWebUI --include "uvr5_weights/*.*" --local-dir custom_nodes/ComfyUI-UVR5/uvr5
+```
+
 # ComfyUI-UVR5
 the comfyui custom node for [UVR5](https://github.com/Anjok07/ultimatevocalremovergui) to separate vocals and background music
 <div>

@@ -1,13 +1,18 @@
+import hashlib
 import os
 import random
-import torch
+from pathlib import Path
+
 import ffmpeg
-import hashlib
-import folder_paths
+import torch
 from huggingface_hub import hf_hub_download
+
+import folder_paths
+from comfy_extras.nodes_audio import save_audio
+from cuda_malloc import cuda_malloc_supported
+
 from .uvr5.mdxnet import MDXNetDereverb
 from .uvr5.vr import AudioPre, AudioPreDeEcho
-from cuda_malloc import cuda_malloc_supported
 
 input_path = folder_paths.get_input_directory()
 output_path = folder_paths.get_output_directory()
@@ -47,8 +52,7 @@ class PreViewAudio:
         audio_name = os.path.basename(audio)
         tmp_path = os.path.dirname(audio)
         audio_root = os.path.basename(tmp_path)
-        return {"ui": {"audio":[audio_name,audio_root]}}
-        
+        return {"ui": {"audio": [audio_name, audio_root]}}
 
     @classmethod
     def IS_CHANGED(s, audio):
@@ -57,6 +61,45 @@ class PreViewAudio:
         with open(audio_path, 'rb') as f:
             m.update(f.read())
         return m.digest().hex()
+
+
+class LoadNativeAudio:
+    def __init__(self):
+        self.output_dir = folder_paths.get_temp_directory()
+        self.type = "output"
+        self.prefix_append = ""
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "audio": ("AUDIO",),
+                "filename_prefix": ("STRING", {"default": "audio/ComfyUI"}),
+            },
+            "hidden": {"prompt": "PROMPT", "extra_pnginfo": "EXTRA_PNGINFO"},
+        }
+
+    RETURN_TYPES = ("AUDIOPATH",)
+    FUNCTION = "save_flac"
+
+    OUTPUT_NODE = True
+
+    CATEGORY = "AIFSH_UVR5"
+
+    def save_flac(
+        self,
+        audio,
+        filename_prefix="ComfyUI",
+        format="flac",
+        prompt=None,
+        extra_pnginfo=None,
+    ):
+        res = save_audio(self, audio, filename_prefix, format, prompt, extra_pnginfo)
+        filename = res["ui"]["audio"][0]["filename"]
+        subfolder = res["ui"]["audio"][0]["subfolder"]
+        full_path = Path(self.output_dir) / subfolder / filename
+        filepath = str(full_path.resolve())
+        return (filepath,)
 
 
 class LoadAudioPath:
