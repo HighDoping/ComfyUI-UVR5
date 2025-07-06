@@ -98,7 +98,7 @@ class LoadNativeAudio:
         filename = res["ui"]["audio"][0]["filename"]
         subfolder = res["ui"]["audio"][0]["subfolder"]
         full_path = Path(self.output_dir) / subfolder / filename
-        filepath = str(full_path.resolve())
+        filepath = full_path.resolve().as_posix()
         return (filepath,)
 
 
@@ -128,6 +128,44 @@ class LoadAudioPath:
         with open(audio_path, 'rb') as f:
             m.update(f.read())
         return m.digest().hex()
+
+
+class AudioPathtoString:
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "audiopath": ("AUDIOPATH",),
+            }
+        }
+
+    CATEGORY = "AIFSH_UVR5"
+
+    RETURN_TYPES = ("STRING",)
+    FUNCTION = "audio_to_string"
+
+    def audio_to_string(self, audio):
+        audio_path = str(audio)
+        return (audio_path,)
+
+
+class StringToAudioPath:
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "string": ("STRING",),
+            }
+        }
+
+    CATEGORY = "AIFSH_UVR5"
+
+    RETURN_TYPES = ("AUDIOPATH",)
+    FUNCTION = "string_to_audio"
+
+    def string_to_audio(self, audio):
+        audio_path = str(audio)
+        return (audio_path,)
 
 
 class UVR5:
